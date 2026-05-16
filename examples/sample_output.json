@@ -1,0 +1,56 @@
+{
+  "meeting_title": "Engineering Standup",
+  "date": "2026-05-17",
+  "participants": ["Alice Chen", "Bob Patel", "Charlie Nwosu"],
+  "decisions": [
+    "Redis latency investigation assigned to Bob with Wednesday EOD deadline",
+    "Sprint planning rescheduled to Thursday 2:30 PM",
+    "Charlie to escalate deployment approval (INF-2284) directly to Priya"
+  ],
+  "action_items": [
+    {
+      "task": "Investigate and resolve Redis connection pool exhaustion / latency issue on auth service",
+      "owner": "Bob Patel",
+      "deadline": "Wednesday EOD",
+      "priority": "high"
+    },
+    {
+      "task": "Provide rollback plan document to Charlie for INF-2284 approval",
+      "owner": "Bob Patel",
+      "deadline": "Today EOD",
+      "priority": "high"
+    },
+    {
+      "task": "Escalate change request INF-2284 to Priya (infrastructure approval board chair)",
+      "owner": "Charlie Nwosu",
+      "deadline": "This morning",
+      "priority": "high"
+    },
+    {
+      "task": "Send calendar invite and agenda for sprint planning on Thursday 2:30 PM",
+      "owner": "Alice Chen",
+      "deadline": "Today",
+      "priority": "medium"
+    }
+  ],
+  "open_questions": [
+    "Is the Redis latency caused by connection pool exhaustion or the allkeys-lru eviction policy?",
+    "Will INF-2284 receive approval before Thursday sprint planning?"
+  ],
+  "risk_flags": [
+    {
+      "description": "Redis auth service latency spiking to 450ms — indirectly blocking API team. Root cause unconfirmed.",
+      "severity": "critical"
+    },
+    {
+      "description": "Production deployment (INF-2284) blocked on infrastructure approval board sign-off. If not resolved by Thursday, deployment carries into next sprint and threatens Q2 release plan.",
+      "severity": "moderate"
+    },
+    {
+      "description": "Tech lead Alice Chen going on leave Friday for the full following week — availability gap during sprint execution.",
+      "severity": "low"
+    }
+  ],
+  "follow_up_email": "Team,\n\nThanks for a productive standup. Here's a summary of what we aligned on:\n\n**Decisions**\n- Redis latency investigation is now Bob's primary focus with a Wednesday EOD deadline\n- Sprint planning has been moved to Thursday at 2:30 PM\n- Charlie will escalate INF-2284 directly to Priya today\n\n**Action Items**\n- Bob: Root cause + fix for Redis latency — by Wednesday EOD\n- Bob: Rollback plan doc to Charlie — by today EOD\n- Charlie: Escalate INF-2284 to Priya — this morning\n- Alice: Calendar invite for Thursday 2:30 PM sprint planning\n\n**Risks to Watch**\n- If the deployment approval doesn't come through by Thursday, we may need to carry it into next sprint, which impacts Q2 targets.\n\nPlease shout if anything changes.\n\nBest regards,\nAlice Chen",
+  "summary": "The team discussed a critical Redis latency issue on the auth service (spiking to 450ms), a production deployment blocked pending infrastructure board approval, and a sprint planning reschedule. Four action items were assigned with clear owners and deadlines, with the Redis fix and deployment unblock both carrying Q2 risk."
+}

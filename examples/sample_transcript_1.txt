@@ -1,0 +1,53 @@
+Engineering Standup — 2026-05-17 — 9:02 AM
+
+Attendees: Alice Chen (Tech Lead), Bob Patel (Backend Engineer), Charlie Nwosu (DevOps)
+
+---
+
+Alice: Alright, let's kick off. We've got a few things to get through — Redis, the deployment blocker, and sprint planning. Bob, you want to start?
+
+Bob: Yeah, so the Redis latency thing is getting worse. I was seeing 200ms average on the auth service yesterday, and it spiked to 450ms around 4pm. It's definitely not the data volume — I checked. I think it's a connection pool exhaustion issue but I haven't confirmed yet.
+
+Alice: That's really bad, 450ms on auth is going to start breaking things.
+
+Bob: Yeah I know. I need to dig into the pool config. It might also be the eviction policy — I set it to allkeys-lru last sprint and I'm wondering if that was wrong.
+
+Charlie: Could also be network latency inside the cluster. Did you check the Redis slow log?
+
+Bob: I looked at it briefly but didn't see anything obvious. I'll go through it more carefully today.
+
+Alice: Bob, can you own this end to end? I want it resolved by Wednesday EOD — this is blocking the API team indirectly.
+
+Bob: Yeah, I'll make it my main focus. I'll have a root cause by Wednesday.
+
+Alice: Good. Charlie, what's the status on the prod deployment? That was supposed to go out Thursday and it didn't.
+
+Charlie: Yeah, it's still stuck. We need a sign-off from the infrastructure approval board before we can cut a release to prod. I submitted the change request last week but I haven't heard back. The ticket number is INF-2284 if anyone wants to check. It's been sitting there.
+
+Alice: That's not acceptable if we're trying to hit our Q2 targets. Charlie, can you escalate directly to Priya? She's the board chair.
+
+Charlie: I'll ping her this morning. But I also need the updated rollback plan from Bob before they'll approve. Bob, can you get me that doc?
+
+Bob: Oh, right. I forgot about that. I can get you a draft by end of today?
+
+Charlie: That works.
+
+Alice: Okay. Last thing — sprint planning. I'm going on leave starting Friday and I'll be out the whole of next week. We need to move the planning session from next Tuesday to this Thursday.
+
+Bob: Thursday works for me, I'm free after 2pm.
+
+Charlie: Same, I'm good after lunch.
+
+Alice: Let's do 2:30pm Thursday then. I'll send the calendar invite and the agenda. We need to make sure the Redis fix is at least diagnosed before we go into planning so we can size it properly.
+
+Bob: Understood.
+
+Charlie: One thing I want to flag — if INF-2284 doesn't get approved by Thursday, we might have to carry the deployment into next sprint. That'll mess up the Q2 release plan.
+
+Alice: Agreed, that's a risk. Let's see if Priya can expedite. Anything else?
+
+Bob: No blockers other than what I mentioned.
+
+Charlie: I'm good.
+
+Alice: Alright, let's get moving. Bob — Redis by Wednesday, rollback doc to Charlie by EOD today. Charlie — ping Priya and escalate INF-2284. I'll send the sprint planning invite for Thursday 2:30. Talk tomorrow.

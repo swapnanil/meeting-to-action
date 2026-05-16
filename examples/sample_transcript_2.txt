@@ -1,0 +1,71 @@
+Client Strategy Meeting — AI Pilot Rollout — 2026-05-15 — 2:00 PM
+
+Attendees: Swapnanil Saha (Solutions Engineer, vendor), Marcus Webb (VP of Operations, client), Diane Torres (Head of IT Security, client), James Okonkwo (Data Engineering Lead, client)
+
+---
+
+Swapnanil: Thanks for making the time everyone. The goal for today is to agree on the phasing plan for the AI pilot and make sure we're aligned on timeline, scope, and any blockers before we kick off. Marcus, do you want to set the scene?
+
+Marcus: Sure. So we've got executive buy-in for the pilot, which is great. The CFO has approved a budget of $120K for the initial phase, but she's made it clear that if we don't see measurable ROI signals by end of Q3, the programme won't get extended. So there's real pressure on us to show value fast.
+
+Swapnanil: Understood. That's exactly why we've recommended starting with the document classification use case — it has a short feedback loop and clear metrics. We can show accuracy numbers within six weeks of go-live.
+
+Diane: Before we get too far into timeline — I need to raise the data access issue. We've been trying to get approval to connect your system to our internal document store since February, and it's still sitting with legal and compliance. Until that's resolved, you can't actually access the documents you need to train or run the model.
+
+James: Yeah, I've been chasing it on our end. The problem is our legal team flagged some GDPR concerns about sending document metadata to a third-party system, even if the documents themselves stay on-prem. We're waiting on a data processing agreement to be finalised.
+
+Swapnanil: That is a significant blocker. Without document access the pilot can't proceed as originally designed. Can you give me a realistic estimate of when the DPA will be sorted?
+
+Diane: Honestly, four to six weeks minimum. Legal moves slowly. It could be longer if they want external counsel involved.
+
+Marcus: Okay, so that changes things. Swapnanil, what can we actually do in the interim?
+
+Swapnanil: A few options. We could run phase one on synthetic or anonymised data — it won't be as accurate but it proves the pipeline works. Or we scope the pilot to a different use case entirely that doesn't require access to restricted documents. For example, meeting summarisation or email triage, which can run on data that doesn't touch the restricted document store.
+
+Marcus: I like the meeting summarisation idea. We have tons of recorded meetings that are already in an accessible system. James, is that feasible from your side?
+
+James: Yeah, those are stored in Microsoft Teams and we already have a compliant API integration setup. That shouldn't need additional legal sign-off.
+
+Diane: I'd want to confirm that with legal but my gut says it's fine. The Teams data is covered under our existing O365 DPA with Microsoft.
+
+Marcus: Let's make that decision then. We'll pivot phase one to meeting summarisation using Teams data, and treat the document classification work as phase two once the DPA is resolved. Swapnanil, can your team accommodate that?
+
+Swapnanil: Absolutely. We'll need to adjust the scope document and timeline, but the core infrastructure is the same. I'll have an updated proposal to you by end of next week.
+
+Marcus: Good. Second decision — on budget. Given the phase change, is $120K still the right number?
+
+Swapnanil: For phase one as redefined, yes. Meeting summarisation is actually a lighter lift. The $120K covers model hosting, integration work, and three months of support. Phase two — the document classification — will need a separate budget conversation once the DPA is resolved.
+
+Marcus: Agreed. We keep phase one at $120K and we'll revisit budget for phase two separately. Let's make that official.
+
+Swapnanil: Perfect. James, for the Teams integration — what do you need from us to get started?
+
+James: I'll need your API specification and the required OAuth scopes. Once I have that I can provision the integration. Give me a week after I receive the spec.
+
+Swapnanil: I'll get the API spec to you by Friday this week.
+
+Marcus: And I need to loop in our legal team on the DPA for document classification — even though it's phase two, I don't want to wait until the last minute. Diane, can you set up a call with legal for next week?
+
+Diane: I'll do it. I'll reach out to Rachel in legal and get something on the calendar for the week of the 25th.
+
+Marcus: Good. One more thing — I need to present a progress update to the CFO on June 5th. Swapnanil, can I get a written summary of today's decisions and the revised pilot scope by Monday?
+
+Swapnanil: Absolutely, I'll have that to you by Monday morning.
+
+James: Is there anything you need from me before the integration spec arrives?
+
+Swapnanil: Just confirm that your Teams tenant ID is accessible — I'll need it for the OAuth configuration.
+
+James: I'll send that over today.
+
+Marcus: Alright, I think we've covered everything. Let me recap: phase one pivots to meeting summarisation on Teams data, budget stays at $120K, Swapnanil sends the API spec by Friday and the scope summary by Monday, James provisions the integration within a week of receiving the spec, and Diane kicks off the DPA conversation with legal for phase two. Everyone aligned?
+
+Swapnanil: Aligned.
+
+Diane: Yes.
+
+James: Confirmed.
+
+Marcus: Great. Let's schedule a check-in for two weeks out. Swapnanil, can you send a calendar invite?
+
+Swapnanil: Will do. I'll send it this afternoon for the week of June 1st.

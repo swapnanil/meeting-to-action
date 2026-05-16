@@ -1,0 +1,17 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file: .env
+    volumes:
+      - ./examples:/app/examples
+
+  cli:
+    build: .
+    env_file: .env
+    volumes:
+      - ./examples:/app/examples
+      - ./results:/app/results
+    entrypoint: ["python", "main.py"]
+    profiles: ["cli"]
