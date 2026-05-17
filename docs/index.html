@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>meeting-to-action — llm-tools by Swapnanil Saha</title>
+  <meta name="description" content="Paste a transcript. Get decisions, owners, deadlines, and a ready-to-send follow-up — in under 10 seconds.">
+  <meta property="og:title" content="meeting-to-action">
+  <meta property="og:description" content="Paste a transcript. Get decisions, owners, deadlines, and a ready-to-send follow-up — in under 10 seconds.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080a0e; --bg2: #0d1017; --surface: #111520;
+      --border: #1e2535; --border2: #252d40;
+      --gold: #c9a84c; --gold-dim: #8a6f2e;
+      --cyan: #00c9b1; --cyan-dim: #007a6b; --red: #e05252;
+      --text: #dde2ee; --text-dim: #7a8399; --text-muted: #3d4560;
+      --mono: 'JetBrains Mono', monospace;
+      --display: 'Bebas Neue', sans-serif;
+      --serif: 'Crimson Pro', serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--serif);
+      font-size: 18px;
+      line-height: 1.6;
+      overflow-x: hidden;
+      cursor: crosshair;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.4;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+      pointer-events: none;
+      z-index: 998;
+    }
+
+    .cursor-glow {
+      position: fixed;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,168,76,0.05) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 997;
+      transform: translate(-50%, -50%);
+    }
+
+    /* ─── Nav ─── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8,10,14,0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav-brand {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 3px;
+      color: var(--gold);
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    /* ─── Layout ─── */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+
+    section { padding: 100px 0; }
+
+    /* ─── Section tags ─── */
+    .section-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-tag::before {
+      content: '';
+      width: 22px;
+      height: 1px;
+      background: var(--cyan);
+      display: block;
+    }
+
+    .section-header { margin-bottom: 56px; }
+
+    .section-title {
+      font-family: var(--display);
+      font-size: clamp(38px, 5vw, 54px);
+      letter-spacing: 1px;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .section-sub {
+      font-family: var(--serif);
+      font-size: 17px;
+      color: var(--text-dim);
+      margin-top: 14px;
+      font-style: italic;
+      max-width: 520px;
+    }
+
+    /* ─── Hero ─── */
+    .hero {
+      min-height: calc(100vh - 57px);
+      display: flex;
+      align-items: center;
+    }
+
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 72px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .tool-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tool-badge::before {
+      content: '';
+      width: 22px;
+      height: 1px;
+      background: var(--text-muted);
+      display: block;
+    }
+
+    .hero-title {
+      font-family: var(--display);
+      font-size: clamp(72px, 10vw, 136px);
+      line-height: 0.9;
+      letter-spacing: 1px;
+      color: var(--text);
+      margin-bottom: 28px;
+    }
+
+    .hero-title .accent { color: var(--gold); }
+
+    .hero-desc {
+      font-family: var(--serif);
+      font-size: 21px;
+      font-style: italic;
+      font-weight: 300;
+      color: var(--text-dim);
+      max-width: 480px;
+      line-height: 1.55;
+      margin-bottom: 36px;
+    }
+
+    /* ─── Buttons ─── */
+    .btn-group { display: flex; gap: 14px; flex-wrap: wrap; }
+
+    .btn-primary {
+      background: var(--gold);
+      color: var(--bg);
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      padding: 13px 26px;
+      border: 1px solid var(--gold);
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+      cursor: crosshair;
+      display: inline-block;
+    }
+
+    .btn-primary:hover { background: transparent; color: var(--gold); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      padding: 13px 26px;
+      border: 1px solid var(--border2);
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+      cursor: crosshair;
+      display: inline-block;
+    }
+
+    .btn-secondary:hover { border-color: var(--text-dim); color: var(--text); }
+
+    /* ─── Terminal ─── */
+    .terminal {
+      background: #0d1117;
+      border: 1px solid #21262d;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      padding: 20px 24px;
+      overflow-x: auto;
+    }
+
+    .terminal-bar { display: flex; gap: 6px; margin-bottom: 18px; }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot-r { background: #ff5f56; }
+    .dot-y { background: #ffbd2e; }
+    .dot-g { background: #27c93f; }
+
+    .terminal pre {
+      color: var(--text-dim);
+      line-height: 1.75;
+      white-space: pre;
+    }
+
+    .t-prompt { color: var(--cyan-dim); }
+    .t-cmd    { color: var(--text); }
+    .t-flag   { color: var(--gold); }
+    .t-val    { color: #79c0ff; }
+    .t-cmt    { color: var(--text-muted); }
+    .t-key    { color: var(--gold); }
+    .t-str    { color: #a8d8a8; }
+    .t-sev    { color: var(--red); }
+    .t-head   { color: var(--cyan); }
+    .t-dim    { color: var(--text-dim); }
+    .t-muted  { color: var(--text-muted); }
+
+    /* ─── Architecture ─── */
+    .arch-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      position: relative;
+    }
+
+    .arch-row::before {
+      content: '';
+      position: absolute;
+      top: 7px;
+      left: calc(12.5% + 8px);
+      right: calc(12.5% + 8px);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border2) 10%, var(--border2) 90%, transparent);
+    }
+
+    .arch-step { padding: 0 20px 0 0; }
+
+    .arch-num {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--text-muted);
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .arch-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+      flex-shrink: 0;
+    }
+
+    .arch-label {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gold);
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .arch-desc {
+      font-family: var(--serif);
+      font-size: 15px;
+      color: var(--text-dim);
+      line-height: 1.55;
+    }
+
+    /* ─── Feature cards ─── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 28px 26px;
+      transition: border-color 0.2s;
+    }
+
+    .card:hover { border-color: var(--border2); }
+
+    .features-grid .card { border: none; }
+
+    .card-num {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      letter-spacing: 2px;
+    }
+
+    .card-title {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .card-desc {
+      font-family: var(--serif);
+      font-size: 15px;
+      color: var(--text-dim);
+      line-height: 1.55;
+    }
+
+    .card-desc code {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--cyan);
+    }
+
+    /* ─── Example ─── */
+    .example-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .ex-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ex-label span { color: var(--cyan); }
+
+    /* ─── Schema pills ─── */
+    .schema-wrap {
+      margin-top: 36px;
+    }
+
+    .schema-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .schema-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .pill {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--cyan);
+      border: 1px solid var(--cyan-dim);
+      padding: 4px 12px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ─── Suite ─── */
+    .suite-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .suite-card {
+      background: var(--surface);
+      padding: 24px 20px;
+      text-decoration: none;
+      transition: background 0.2s;
+      display: block;
+    }
+
+    .suite-card:hover { background: var(--bg2); }
+
+    .suite-name {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gold);
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .suite-desc {
+      font-family: var(--serif);
+      font-size: 13.5px;
+      color: var(--text-dim);
+      line-height: 1.45;
+    }
+
+    /* ─── Divider ─── */
+    .full-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0;
+    }
+
+    /* ─── Footer ─── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 26px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-left, .footer-right {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    .footer-right span { color: var(--gold); }
+
+    /* ─── Reveal ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── Mobile ─── */
+    @media (max-width: 768px) {
+      nav { padding: 16px 24px; }
+      .nav-links { display: none; }
+
+      .container { padding: 0 24px; }
+      section { padding: 64px 0; }
+
+      .hero { min-height: auto; padding: 48px 0; }
+      .hero-inner { grid-template-columns: 1fr; gap: 44px; }
+      .hero-title { font-size: 52px; }
+      .hero-desc { font-size: 18px; }
+
+      .arch-row { grid-template-columns: 1fr 1fr; gap: 40px; }
+      .arch-row::before { display: none; }
+
+      .features-grid { grid-template-columns: 1fr; }
+
+      .example-grid { grid-template-columns: 1fr; }
+
+      .suite-grid { grid-template-columns: 1fr 1fr; }
+
+      footer {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+        padding: 20px 24px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .arch-row { grid-template-columns: 1fr; }
+      .suite-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cursor-glow" id="cursorGlow"></div>
+
+  <nav>
+    <a href="#" class="nav-brand">SS / tools</a>
+    <div class="nav-links">
+      <a href="https://swapnanilsaha.com" target="_blank">Portfolio</a>
+      <a href="https://github.com/swapnanil/meeting-to-action" target="_blank">GitHub</a>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════ HERO ═══ -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-inner">
+
+        <div class="hero-left">
+          <div class="tool-badge">Tool 02 / 06</div>
+          <h1 class="hero-title">
+            Meeting to<br>
+            <span class="accent">Action</span>
+          </h1>
+          <p class="hero-desc">"Paste a transcript. Get decisions, owners, deadlines, and a ready-to-send follow-up — in under 10 seconds."</p>
+          <div class="btn-group">
+            <a href="https://github.com/swapnanil/meeting-to-action" target="_blank" class="btn-primary">View on GitHub</a>
+            <a href="https://github.com/swapnanil/meeting-to-action#api-usage" target="_blank" class="btn-secondary">API Docs</a>
+          </div>
+        </div>
+
+        <div class="hero-right">
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="dot dot-r"></div>
+              <div class="dot dot-y"></div>
+              <div class="dot dot-g"></div>
+            </div>
+            <pre><span class="t-prompt">$</span> <span class="t-cmd">docker-compose run cli run</span> \
+  <span class="t-flag">--file</span> <span class="t-val">examples/sample_transcript_2.txt</span> \
+  <span class="t-flag">--format</span> <span class="t-val">markdown</span>
+
+<span class="t-cmt"># Extracting from transcript (3.2k chars)…</span>
+
+<span class="t-head">## Client Strategy Meeting</span>
+<span class="t-dim">Date: 2026-05-15 · Participants: 4</span>
+
+<span class="t-head">## Decisions</span>
+<span class="t-dim">- Phase one pivots to meeting summarisation</span>
+<span class="t-dim">- Budget for phase one stays at $120K</span>
+
+<span class="t-head">## Action Items</span>
+<span class="t-dim">| Task            | Owner      | Deadline | Pri  |</span>
+<span class="t-dim">| Send API spec   | Swapnanil  | Friday   | High |</span>
+<span class="t-dim">| Provision Teams | James      | +1 week  | Med  |</span>
+
+<span class="t-head">## Risk Flags</span>
+<span class="t-sev">[CRITICAL]</span> <span class="t-dim">DPA not signed — blocks phase two</span></pre>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <hr class="full-divider">
+
+  <!-- ═══════════════════════════════ ARCHITECTURE ═══ -->
+  <section>
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">How it works</div>
+        <h2 class="section-title">Four steps.<br>Zero ambiguity.</h2>
+        <p class="section-sub">Unstructured text in. Structured accountability out.</p>
+      </div>
+      <div class="arch-row">
+        <div class="arch-step reveal">
+          <div class="arch-num"><div class="arch-dot"></div>01</div>
+          <div class="arch-label">Input</div>
+          <div class="arch-desc">Raw transcript file, stdin pipe, or API request — whatever fits your workflow</div>
+        </div>
+        <div class="arch-step reveal">
+          <div class="arch-num"><div class="arch-dot"></div>02</div>
+          <div class="arch-label">Extract</div>
+          <div class="arch-desc">Claude identifies decisions, owners, deadlines, open questions, and risks</div>
+        </div>
+        <div class="arch-step reveal">
+          <div class="arch-num"><div class="arch-dot"></div>03</div>
+          <div class="arch-label">Validate</div>
+          <div class="arch-desc">Pydantic models enforce a structured, consistent schema on every run</div>
+        </div>
+        <div class="arch-step reveal">
+          <div class="arch-num"><div class="arch-dot"></div>04</div>
+          <div class="arch-label">Output</div>
+          <div class="arch-desc">Markdown report, JSON, or standalone follow-up email — your choice</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="full-divider">
+
+  <!-- ════════════════════════════════ FEATURES ═══ -->
+  <section>
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">Capabilities</div>
+        <h2 class="section-title">Built for<br>accountability.</h2>
+        <p class="section-sub">Every feature targets the gap between a meeting happening and work actually getting done.</p>
+      </div>
+      <div class="features-grid">
+
+        <div class="card reveal">
+          <div class="card-num">01</div>
+          <div class="card-title">Decisions vs Discussion</div>
+          <div class="card-desc">Distinguishes between things agreed upon and things still being debated — a distinction most manual note-takers get wrong</div>
+        </div>
+
+        <div class="card reveal">
+          <div class="card-num">02</div>
+          <div class="card-title">Owner Extraction</div>
+          <div class="card-desc">Pulls action item owners directly from natural language ("Sarah will handle...") — no structured input required</div>
+        </div>
+
+        <div class="card reveal">
+          <div class="card-num">03</div>
+          <div class="card-title">Risk Flags</div>
+          <div class="card-desc">Identifies blockers, unresolved dependencies, and concerns that could derail progress — each tagged with a severity level</div>
+        </div>
+
+        <div class="card reveal">
+          <div class="card-num">04</div>
+          <div class="card-title">Follow-up Email</div>
+          <div class="card-desc">Generates a complete, professional email ready to send with no editing. Addressed to "Team", signed as the meeting organiser</div>
+        </div>
+
+        <div class="card reveal">
+          <div class="card-num">05</div>
+          <div class="card-title">Pipe-friendly CLI</div>
+          <div class="card-desc">Works with stdin so it fits any shell workflow: <code>cat notes.txt | python main.py run --stdin</code></div>
+        </div>
+
+        <div class="card reveal">
+          <div class="card-num">06</div>
+          <div class="card-title">Three Output Formats</div>
+          <div class="card-desc">JSON for programmatic use, Markdown for documentation, email-only mode for the follow-up draft</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <hr class="full-divider">
+
+  <!-- ══════════════════════════════════ EXAMPLE ═══ -->
+  <section>
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">Example</div>
+        <h2 class="section-title">Chaos in.<br>Structure out.</h2>
+      </div>
+
+      <div class="example-grid">
+
+        <div class="reveal">
+          <div class="ex-label">Input — <span>raw transcript snippet</span></div>
+          <div class="terminal">
+            <pre style="font-size: 12px; line-height: 1.75; white-space: pre-wrap;"><span class="t-cmt">[Engineering Sync — May 17]</span>
+
+Sarah: So we've agreed the Redis cache
+       layer ships by end of month?
+Mark:  Yes, that's confirmed. I'll own
+       the implementation.
+Sarah: What about the API rate
+       limiting issue?
+Dev:   Still open — we need input from
+       the infra team before we decide.
+Sarah: Ok, flag that. Also the staging
+       deploy is blocked on Raj's
+       approval.</pre>
+          </div>
+        </div>
+
+        <div class="reveal">
+          <div class="ex-label">Output — <span>structured JSON</span></div>
+          <div class="terminal">
+            <pre style="font-size: 11.5px; line-height: 1.7;"><span class="t-muted">{</span>
+  <span class="t-key">"decisions"</span><span class="t-muted">: [</span>
+    <span class="t-str">"Redis cache ships by end of month"</span>
+  <span class="t-muted">],</span>
+  <span class="t-key">"action_items"</span><span class="t-muted">: [{</span>
+    <span class="t-val">"task"</span><span class="t-muted">:</span>     <span class="t-str">"Implement Redis cache layer"</span><span class="t-muted">,</span>
+    <span class="t-val">"owner"</span><span class="t-muted">:</span>    <span class="t-str">"Mark"</span><span class="t-muted">,</span>
+    <span class="t-val">"deadline"</span><span class="t-muted">:</span> <span class="t-str">"end of month"</span><span class="t-muted">,</span>
+    <span class="t-val">"priority"</span><span class="t-muted">:</span> <span class="t-str">"high"</span>
+  <span class="t-muted">}],</span>
+  <span class="t-key">"open_questions"</span><span class="t-muted">: [</span>
+    <span class="t-str">"API rate limiting — awaiting
+     infra team input"</span>
+  <span class="t-muted">],</span>
+  <span class="t-key">"risk_flags"</span><span class="t-muted">: [{</span>
+    <span class="t-val">"description"</span><span class="t-muted">:</span> <span class="t-str">"Staging deploy
+     blocked on Raj's approval"</span><span class="t-muted">,</span>
+    <span class="t-val">"severity"</span><span class="t-muted">:</span>    <span class="t-sev">"moderate"</span>
+  <span class="t-muted">}]</span>
+<span class="t-muted">}</span></pre>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="schema-wrap reveal">
+        <div class="schema-label">Output schema fields</div>
+        <div class="schema-pills">
+          <div class="pill">decisions[]</div>
+          <div class="pill">action_items[].task</div>
+          <div class="pill">action_items[].owner</div>
+          <div class="pill">action_items[].deadline</div>
+          <div class="pill">action_items[].priority</div>
+          <div class="pill">open_questions[]</div>
+          <div class="pill">risk_flags[].description</div>
+          <div class="pill">risk_flags[].severity</div>
+          <div class="pill">follow_up_email</div>
+          <div class="pill">summary</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="full-divider">
+
+  <!-- ══════════════════════════════════ SUITE ═══ -->
+  <section>
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">llm-tools suite</div>
+        <h2 class="section-title">Five more tools.<br>Same standard.</h2>
+        <p class="section-sub">Each tool is a standalone CLI + REST API. Each one solves a real problem with Claude.</p>
+      </div>
+
+      <div class="suite-grid">
+        <a href="https://github.com/swapnanil/ad-copy-critic" target="_blank" class="suite-card reveal">
+          <div class="suite-name">ad-copy-critic</div>
+          <div class="suite-desc">Scores ad copy across 8 dimensions and rewrites it</div>
+        </a>
+        <a href="https://github.com/swapnanil/campaign-health" target="_blank" class="suite-card reveal">
+          <div class="suite-name">campaign-health</div>
+          <div class="suite-desc">Diagnoses ad campaign metrics and identifies root causes</div>
+        </a>
+        <a href="https://github.com/swapnanil/rag-readiness" target="_blank" class="suite-card reveal">
+          <div class="suite-name">rag-readiness</div>
+          <div class="suite-desc">Recommends a complete RAG architecture for your data and use case</div>
+        </a>
+        <a href="https://github.com/swapnanil/llm-eval-suite" target="_blank" class="suite-card reveal">
+          <div class="suite-name">llm-eval-suite</div>
+          <div class="suite-desc">Evaluates and compares LLM outputs with structured scoring</div>
+        </a>
+        <a href="https://github.com/swapnanil/ai-use-case-scoper" target="_blank" class="suite-card reveal">
+          <div class="suite-name">ai-use-case-scoper</div>
+          <div class="suite-desc">Turns a vague AI ambition into a prioritised roadmap</div>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-left">© 2026 Swapnanil Saha · swapnanilsaha.com</div>
+    <div class="footer-right">Part of the <span>llm-tools</span> suite</div>
+  </footer>
+
+  <script>
+    const glow = document.getElementById('cursorGlow');
+    document.addEventListener('mousemove', e => {
+      glow.style.left = e.clientX + 'px';
+      glow.style.top = e.clientY + 'px';
+    });
+
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((en, i) => {
+        if (en.isIntersecting) {
+          setTimeout(() => en.target.classList.add('visible'), i * 75);
+          obs.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+  </script>
+</body>
+</html>
