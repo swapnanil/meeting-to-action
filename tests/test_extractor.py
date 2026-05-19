@@ -11,6 +11,8 @@ VALID_OUTPUT = {
     "meeting_title": "Engineering Standup",
     "date": "2026-05-17",
     "participants": ["Alice Chen", "Bob Patel", "Charlie Nwosu"],
+    "meeting_type": "standup",
+    "meeting_type_confidence": 0.92,
     "decisions": ["Deploy to staging after approval"],
     "action_items": [
         {
@@ -27,7 +29,7 @@ VALID_OUTPUT = {
             "severity": "moderate",
         }
     ],
-    "follow_up_email": (
+    "formatted_follow_up": (
         "Team,\n\nPlease see the action items from today's standup.\n\nBest regards,\nAlice"
     ),
     "summary": "The team aligned on Redis fix ownership and unblocking the deployment. Two risks flagged.",

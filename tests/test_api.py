@@ -15,6 +15,8 @@ VALID_OUTPUT = {
     "meeting_title": "Client Strategy Meeting",
     "date": "2026-05-15",
     "participants": ["Swapnanil Saha", "Marcus Webb", "Diane Torres", "James Okonkwo"],
+    "meeting_type": "exec_review",
+    "meeting_type_confidence": 0.88,
     "decisions": [
         "Phase one pivots to meeting summarisation using Teams data",
         "Budget for phase one remains at $120K",
@@ -48,7 +50,7 @@ VALID_OUTPUT = {
             "severity": "critical",
         }
     ],
-    "follow_up_email": (
+    "formatted_follow_up": (
         "Team,\n\nThank you for a productive session today. Here is a summary of decisions and next steps.\n\n"
         "Decisions:\n- Phase one pivots to meeting summarisation on Teams data\n"
         "- Phase one budget confirmed at $120K\n\n"
@@ -140,7 +142,7 @@ class TestExtractEndpoint:
         required_keys = {
             "meeting_title", "date", "participants", "decisions",
             "action_items", "open_questions", "risk_flags",
-            "follow_up_email", "summary",
+            "formatted_follow_up", "summary",
         }
         assert required_keys.issubset(data.keys())
 

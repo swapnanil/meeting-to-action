@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>meeting-to-action — llm-tools by Swapnanil Saha</title>
-  <meta name="description" content="Paste a transcript. Get decisions, owners, deadlines, and a ready-to-send follow-up — in under 10 seconds.">
-  <meta property="og:title" content="meeting-to-action">
-  <meta property="og:description" content="Paste a transcript. Get decisions, owners, deadlines, and a ready-to-send follow-up — in under 10 seconds.">
+  <title>meeting-to-action v2 — llm-tools by Swapnanil Saha</title>
+  <meta name="description" content="Normalize transcripts, detect meeting type, extract decisions and action items, track cross-meeting commitments, and generate weekly digests — with a single CLI tool.">
+  <meta property="og:title" content="meeting-to-action v2">
+  <meta property="og:description" content="Normalize transcripts, detect meeting type, extract decisions and action items, track cross-meeting commitments, and generate weekly digests — with a single CLI tool.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -561,12 +561,12 @@
       <div class="hero-inner">
 
         <div class="hero-left">
-          <div class="tool-badge">Productivity · Meeting AI</div>
+          <div class="tool-badge">Productivity · Meeting AI · v2</div>
           <h1 class="hero-title">
             Meeting to<br>
             <span class="accent">Action</span>
           </h1>
-          <p class="hero-desc">"Paste a transcript. Get decisions, owners, deadlines, and a ready-to-send follow-up — in under 10 seconds."</p>
+          <p class="hero-desc">"Normalize messy transcripts, detect meeting type, extract structured data, track commitments across weeks, and ship a weekly digest — one tool."</p>
           <div class="btn-group">
             <a href="https://github.com/swapnanil/meeting-to-action" target="_blank" class="btn-primary">View on GitHub</a>
             <a href="https://github.com/swapnanil/meeting-to-action#api-usage" target="_blank" class="btn-secondary">API Docs</a>
@@ -580,26 +580,21 @@
               <div class="dot dot-y"></div>
               <div class="dot dot-g"></div>
             </div>
-            <pre><span class="t-prompt">$</span> <span class="t-cmd">docker-compose run cli run</span> \
-  <span class="t-flag">--file</span> <span class="t-val">examples/sample_transcript_2.txt</span> \
-  <span class="t-flag">--format</span> <span class="t-val">markdown</span>
+            <pre><span class="t-prompt">$</span> <span class="t-cmd">python main.py batch</span> \
+  <span class="t-flag">--dir</span> <span class="t-val">./transcripts/</span> <span class="t-flag">--digest</span>
 
-<span class="t-cmt"># Extracting from transcript (3.2k chars)…</span>
+<span class="t-cmt"># Normalizing 3 transcripts (Zoom format)…</span>
+<span class="t-cmt"># Processing: standup_mon.txt standup_wed.txt standup_fri.txt</span>
 
-<span class="t-head">## Client Strategy Meeting</span>
-<span class="t-dim">Date: 2026-05-15 · Participants: 4</span>
+<span class="t-head">Batch complete: 3/3 succeeded</span>
 
-<span class="t-head">## Decisions</span>
-<span class="t-dim">- Phase one pivots to meeting summarisation</span>
-<span class="t-dim">- Budget for phase one stays at $120K</span>
+<span class="t-head">Commitment check:</span>
+<span class="t-sev">[MISSED]</span> <span class="t-dim">Bob — Deploy runbook (due May 14, 1 meeting elapsed)</span>
 
-<span class="t-head">## Action Items</span>
-<span class="t-dim">| Task            | Owner      | Deadline | Pri  |</span>
-<span class="t-dim">| Send API spec   | Swapnanil  | Friday   | High |</span>
-<span class="t-dim">| Provision Teams | James      | +1 week  | Med  |</span>
-
-<span class="t-head">## Risk Flags</span>
-<span class="t-sev">[CRITICAL]</span> <span class="t-dim">DPA not signed — blocks phase two</span></pre>
+<span class="t-head">Weekly Digest</span>
+<span class="t-dim">Meetings: 3 · Action items: 11 · Decisions: 6</span>
+<span class="t-dim">Open items by owner: Alice (3), Bob (2), Charlie (2)</span>
+<span class="t-sev">Escalated risks: 2 (critical)</span></pre>
           </div>
         </div>
 
@@ -615,28 +610,28 @@
       <div class="section-header reveal">
         <div class="section-tag">How it works</div>
         <h2 class="section-title">Four steps.<br>Zero ambiguity.</h2>
-        <p class="section-sub">Unstructured text in. Structured accountability out.</p>
+        <p class="section-sub">Messy transcript in. Structured accountability out — across every meeting this week.</p>
       </div>
       <div class="arch-row">
         <div class="arch-step reveal">
           <div class="arch-num"><div class="arch-dot"></div>01</div>
-          <div class="arch-label">Input</div>
-          <div class="arch-desc">Raw transcript file, stdin pipe, or API request — whatever fits your workflow</div>
+          <div class="arch-label">Normalize</div>
+          <div class="arch-desc">Strips Zoom, Teams, and Meet timestamps. Cleans speaker labels. Detects source format automatically</div>
         </div>
         <div class="arch-step reveal">
           <div class="arch-num"><div class="arch-dot"></div>02</div>
-          <div class="arch-label">Extract</div>
-          <div class="arch-desc">Claude identifies decisions, owners, deadlines, open questions, and risks</div>
+          <div class="arch-label">Classify</div>
+          <div class="arch-desc">Claude identifies meeting type — standup, retrospective, exec review, incident review — with a confidence score</div>
         </div>
         <div class="arch-step reveal">
           <div class="arch-num"><div class="arch-dot"></div>03</div>
-          <div class="arch-label">Validate</div>
-          <div class="arch-desc">Pydantic models enforce a structured, consistent schema on every run</div>
+          <div class="arch-label">Extract</div>
+          <div class="arch-desc">Decisions, action items with owners and deadlines, open questions, risk flags, and a type-aware follow-up email</div>
         </div>
         <div class="arch-step reveal">
           <div class="arch-num"><div class="arch-dot"></div>04</div>
-          <div class="arch-label">Output</div>
-          <div class="arch-desc">Markdown report, JSON, or standalone follow-up email — your choice</div>
+          <div class="arch-label">Track</div>
+          <div class="arch-desc">Cross-meeting commitment tracker flags missed items by severity. Weekly digest aggregates open items by owner across all sessions</div>
         </div>
       </div>
     </div>
@@ -656,38 +651,38 @@
 
         <div class="card reveal">
           <div class="card-num">01</div>
-          <div class="card-title">Decisions vs Discussion</div>
-          <div class="card-desc">Distinguishes between things agreed upon and things still being debated — a distinction most manual note-takers get wrong</div>
+          <div class="card-title">Transcript Normalization</div>
+          <div class="card-desc">Strips Zoom <code>[00:02:14]</code>, Teams <code>--></code>, Meet <code>(00:02)</code> timestamps. Normalises email addresses and ALL_CAPS speaker labels. Reports source format and speaker count</div>
         </div>
 
         <div class="card reveal">
           <div class="card-num">02</div>
-          <div class="card-title">Owner Extraction</div>
-          <div class="card-desc">Pulls action item owners directly from natural language ("Sarah will handle...") — no structured input required</div>
+          <div class="card-title">Meeting Type Detection</div>
+          <div class="card-desc">Classifies each meeting as standup, retrospective, exec_review, sprint_planning, incident_review, 1-on-1, and more — with a confidence score. Type shapes the follow-up format</div>
         </div>
 
         <div class="card reveal">
           <div class="card-num">03</div>
-          <div class="card-title">Risk Flags</div>
-          <div class="card-desc">Identifies blockers, unresolved dependencies, and concerns that could derail progress — each tagged with a severity level</div>
+          <div class="card-title">Batch Processing</div>
+          <div class="card-desc">Process an entire directory of transcripts in one command: <code>python main.py batch --dir ./transcripts/</code>. Failures are isolated — one bad file never stops the rest</div>
         </div>
 
         <div class="card reveal">
           <div class="card-num">04</div>
-          <div class="card-title">Follow-up Email</div>
-          <div class="card-desc">Generates a complete, professional email ready to send with no editing. Addressed to "Team", signed as the meeting organiser</div>
+          <div class="card-title">Commitment Tracker</div>
+          <div class="card-desc">Compares action items across meetings. Flags missed commitments with severity (critical / moderate / low), counts meetings elapsed, and surfaces the highest-risk owner</div>
         </div>
 
         <div class="card reveal">
           <div class="card-num">05</div>
-          <div class="card-title">Pipe-friendly CLI</div>
-          <div class="card-desc">Works with stdin so it fits any shell workflow: <code>cat notes.txt | python main.py run --stdin</code></div>
+          <div class="card-title">Weekly Digest</div>
+          <div class="card-desc">Rule-based aggregation: open items by owner, escalated risks (deduplicated across sessions), carry-forward items. Single LLM call generates a ready-to-send digest email</div>
         </div>
 
         <div class="card reveal">
           <div class="card-num">06</div>
-          <div class="card-title">Three Output Formats</div>
-          <div class="card-desc">JSON for programmatic use, Markdown for documentation, email-only mode for the follow-up draft</div>
+          <div class="card-title">Notion Integration</div>
+          <div class="card-desc">Push structured meeting output directly to a Notion database. Set <code>NOTION_API_KEY</code> and <code>NOTION_DATABASE_ID</code>, then pass <code>--push-notion</code> to any extraction command</div>
         </div>
 
       </div>
@@ -707,46 +702,43 @@
       <div class="example-grid">
 
         <div class="reveal">
-          <div class="ex-label">Input — <span>raw transcript snippet</span></div>
+          <div class="ex-label">Input — <span>raw Zoom transcript</span></div>
           <div class="terminal">
-            <pre style="font-size: 12px; line-height: 1.75; white-space: pre-wrap;"><span class="t-cmt">[Engineering Sync — May 17]</span>
-
-Sarah: So we've agreed the Redis cache
-       layer ships by end of month?
-Mark:  Yes, that's confirmed. I'll own
-       the implementation.
-Sarah: What about the API rate
-       limiting issue?
-Dev:   Still open — we need input from
-       the infra team before we decide.
-Sarah: Ok, flag that. Also the staging
-       deploy is blocked on Raj's
-       approval.</pre>
+            <pre style="font-size: 12px; line-height: 1.75; white-space: pre-wrap;"><span class="t-cmt">[00:01:12] ALICE_CHEN_EXT: Morning.
+Redis still at 450ms — auth is
+blocked.</span>
+<span class="t-cmt">[00:01:45] BOB_PATEL: I'll own the
+fix by Wednesday.</span>
+<span class="t-cmt">[00:02:10] ALICE_CHEN_EXT: Deploy
+needs Priya's sign-off. Flag it.</span>
+<span class="t-cmt">[00:02:30] BOB_PATEL: Should we
+pull in the infra team?</span>
+<span class="t-cmt">[00:02:44] ALICE_CHEN_EXT: Not yet,
+let's see how Bob's fix lands first.</span></pre>
           </div>
         </div>
 
         <div class="reveal">
-          <div class="ex-label">Output — <span>structured JSON</span></div>
+          <div class="ex-label">Output — <span>normalized + extracted</span></div>
           <div class="terminal">
             <pre style="font-size: 11.5px; line-height: 1.7;"><span class="t-muted">{</span>
-  <span class="t-key">"decisions"</span><span class="t-muted">: [</span>
-    <span class="t-str">"Redis cache ships by end of month"</span>
-  <span class="t-muted">],</span>
+  <span class="t-key">"meeting_type"</span><span class="t-muted">:</span> <span class="t-str">"standup"</span><span class="t-muted">,</span>
+  <span class="t-key">"meeting_type_confidence"</span><span class="t-muted">:</span> <span class="t-val">0.94</span><span class="t-muted">,</span>
   <span class="t-key">"action_items"</span><span class="t-muted">: [{</span>
-    <span class="t-val">"task"</span><span class="t-muted">:</span>     <span class="t-str">"Implement Redis cache layer"</span><span class="t-muted">,</span>
-    <span class="t-val">"owner"</span><span class="t-muted">:</span>    <span class="t-str">"Mark"</span><span class="t-muted">,</span>
-    <span class="t-val">"deadline"</span><span class="t-muted">:</span> <span class="t-str">"end of month"</span><span class="t-muted">,</span>
+    <span class="t-val">"task"</span><span class="t-muted">:</span>     <span class="t-str">"Fix Redis latency"</span><span class="t-muted">,</span>
+    <span class="t-val">"owner"</span><span class="t-muted">:</span>    <span class="t-str">"Bob Patel"</span><span class="t-muted">,</span>
+    <span class="t-val">"deadline"</span><span class="t-muted">:</span> <span class="t-str">"Wednesday EOD"</span><span class="t-muted">,</span>
     <span class="t-val">"priority"</span><span class="t-muted">:</span> <span class="t-str">"high"</span>
   <span class="t-muted">}],</span>
-  <span class="t-key">"open_questions"</span><span class="t-muted">: [</span>
-    <span class="t-str">"API rate limiting — awaiting
-     infra team input"</span>
-  <span class="t-muted">],</span>
   <span class="t-key">"risk_flags"</span><span class="t-muted">: [{</span>
-    <span class="t-val">"description"</span><span class="t-muted">:</span> <span class="t-str">"Staging deploy
-     blocked on Raj's approval"</span><span class="t-muted">,</span>
-    <span class="t-val">"severity"</span><span class="t-muted">:</span>    <span class="t-sev">"moderate"</span>
-  <span class="t-muted">}]</span>
+    <span class="t-val">"description"</span><span class="t-muted">:</span> <span class="t-str">"Deploy blocked on
+     Priya's approval"</span><span class="t-muted">,</span>
+    <span class="t-val">"severity"</span><span class="t-muted">:</span> <span class="t-sev">"critical"</span>
+  <span class="t-muted">}],</span>
+  <span class="t-key">"formatted_follow_up"</span><span class="t-muted">:</span> <span class="t-str">"🔴 Blockers\n
+   - Deploy pending Priya sign-off\n
+   🔄 In Progress\n- Redis fix (Bob)\n
+   ✅ Done\n- Sprint kickoff"</span>
 <span class="t-muted">}</span></pre>
           </div>
         </div>
@@ -756,15 +748,16 @@ Sarah: Ok, flag that. Also the staging
       <div class="schema-wrap reveal">
         <div class="schema-label">Output schema fields</div>
         <div class="schema-pills">
+          <div class="pill">meeting_type</div>
+          <div class="pill">meeting_type_confidence</div>
           <div class="pill">decisions[]</div>
           <div class="pill">action_items[].task</div>
           <div class="pill">action_items[].owner</div>
           <div class="pill">action_items[].deadline</div>
           <div class="pill">action_items[].priority</div>
           <div class="pill">open_questions[]</div>
-          <div class="pill">risk_flags[].description</div>
           <div class="pill">risk_flags[].severity</div>
-          <div class="pill">follow_up_email</div>
+          <div class="pill">formatted_follow_up</div>
           <div class="pill">summary</div>
         </div>
       </div>

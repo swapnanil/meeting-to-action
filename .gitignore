@@ -30,8 +30,9 @@ Thumbs.db
 # Results output
 results/
 
-# Spec doc (internal)
+# Spec docs (internal)
 spec-meeting-to-action.md
+spec-meeting-to-action-v2.md
 
 # IDE
 .idea/

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 import os
@@ -8,13 +10,13 @@ import anthropic
 from pydantic import ValidationError
 
 from .models import MeetingOutput
+from .normalizer import normalize
 from .prompts import JSON_CORRECTION_PROMPT, SYSTEM_PROMPT, get_user_prompt
 
 logger = logging.getLogger(__name__)
 
 
 def _call_api(client: anthropic.Anthropic, model: str, max_tokens: int, messages: list) -> str:
-    """Call the Anthropic API with exponential backoff on rate limit errors."""
     max_retries = 3
     for attempt in range(max_retries):
         try:
@@ -27,10 +29,10 @@ def _call_api(client: anthropic.Anthropic, model: str, max_tokens: int, messages
             return response.content[0].text
         except anthropic.RateLimitError:
             if attempt < max_retries - 1:
-                wait_time = 2**attempt
+                wait_time = 2 ** attempt
                 logger.warning(
-                    f"Rate limited by Anthropic API. Waiting {wait_time}s before retry "
-                    f"(attempt {attempt + 1}/{max_retries})."
+                    "Rate limited. Waiting %ds before retry (attempt %d/%d).",
+                    wait_time, attempt + 1, max_retries,
                 )
                 time.sleep(wait_time)
             else:
@@ -38,8 +40,7 @@ def _call_api(client: anthropic.Anthropic, model: str, max_tokens: int, messages
                 raise
 
 
-def extract_meeting_output(transcript: str) -> MeetingOutput:
-    """Extract structured meeting intelligence from a raw transcript."""
+def extract_meeting_output(transcript: str, skip_normalize: bool = False) -> MeetingOutput:
     if not transcript or len(transcript.strip()) < 50:
         raise ValueError(
             f"Transcript is too short ({len(transcript.strip())} chars). "
@@ -60,15 +61,20 @@ def extract_meeting_output(transcript: str) -> MeetingOutput:
     max_tokens = int(os.environ.get("MAX_TOKENS", "2048"))
     timestamp = datetime.now(timezone.utc).isoformat()
 
+    normalized = normalize(transcript, skip=skip_normalize)
+    clean_text = normalized.text
+
     logger.info(
-        "Starting extraction | transcript_length=%d | model=%s | timestamp=%s",
-        len(transcript),
+        "Starting extraction | transcript_length=%d | normalized=%s | source_format=%s | model=%s | timestamp=%s",
+        len(clean_text),
+        normalized.was_normalized,
+        normalized.source_format,
         model,
         timestamp,
     )
 
     client = anthropic.Anthropic(api_key=api_key)
-    messages = [{"role": "user", "content": get_user_prompt(transcript)}]
+    messages = [{"role": "user", "content": get_user_prompt(clean_text)}]
 
     raw = _call_api(client, model, max_tokens, messages)
 
@@ -77,12 +83,7 @@ def extract_meeting_output(transcript: str) -> MeetingOutput:
         return MeetingOutput(**data)
     except (json.JSONDecodeError, ValidationError) as e:
         logger.warning(
-            "Invalid JSON on first attempt — retrying with correction prompt. "
-            "error=%s | transcript_length=%d | model=%s | timestamp=%s",
-            e,
-            len(transcript),
-            model,
-            timestamp,
+            "Invalid JSON on first attempt — retrying with correction prompt. error=%s", e
         )
         messages = messages + [
             {"role": "assistant", "content": raw},
@@ -93,14 +94,7 @@ def extract_meeting_output(transcript: str) -> MeetingOutput:
             data = json.loads(raw)
             return MeetingOutput(**data)
         except (json.JSONDecodeError, ValidationError) as e:
-            logger.error(
-                "Extraction failed after JSON correction retry. "
-                "error=%s | transcript_length=%d | model=%s | timestamp=%s",
-                e,
-                len(transcript),
-                model,
-                timestamp,
-            )
+            logger.error("Extraction failed after JSON correction retry. error=%s", e)
             raise ValueError(
                 f"Claude returned invalid JSON even after correction retry: {e}"
             ) from e

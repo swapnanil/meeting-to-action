@@ -2,9 +2,22 @@
 
 **[llm-tools](https://swapnanilsaha.com) suite by Swapnanil Saha**
 
-Enterprise meetings generate decisions and commitments that get lost in unstructured notes. Action items go unassigned, deadlines are ambiguous, and follow-up emails take 20 minutes to write. **Meeting-to-Action** extracts structure from chaos in under 10 seconds.
+Enterprise meetings generate decisions and commitments that get buried in unstructured notes. Action items go unassigned, deadlines stay ambiguous, follow-up emails take 20 minutes to write, and commitments slip across weeks without anyone noticing. **Meeting-to-Action** extracts structure from chaos — and tracks it over time.
 
-Paste in a raw transcript or meeting notes — get back decisions, action items with owners and deadlines, open questions, risk flags, and a ready-to-send follow-up email.
+Paste in a raw transcript (Zoom, Teams, or Meet format) — get back decisions, action items with owners and deadlines, risk flags, a type-aware follow-up email, cross-meeting commitment tracking, and a weekly digest. Normalize messy transcripts automatically. Push structured output directly to a Notion database.
+
+---
+
+## Features
+
+| # | Feature | What it does |
+|---|---------|--------------|
+| 1 | **Transcript Normalization** | Strips Zoom `[00:02:14]`, Teams `-->`, Meet `(00:02)` timestamps. Normalizes email speaker labels and ALL_CAPS names. Detects source format. |
+| 2 | **Meeting Type Detection** | Classifies each meeting as standup, retrospective, exec\_review, sprint\_planning, incident\_review, and more — with a confidence score. |
+| 3 | **Batch Processing** | Process an entire directory of transcripts in one command. Failures are isolated — one bad file doesn't stop the rest. |
+| 4 | **Commitment Tracker** | Compare action items across meetings. Flag missed commitments with severity, count meetings elapsed, and identify the highest-risk owner. |
+| 5 | **Weekly Digest** | Rule-based aggregation across all meetings: open items by owner, escalated risks (deduplicated), carry-forward items, and an LLM-generated digest email. |
+| 6 | **Notion Integration** | Push structured meeting output directly to a Notion database. Requires `NOTION_API_KEY` and `NOTION_DATABASE_ID`. |
 
 ---
 
@@ -21,93 +34,77 @@ curl -s http://localhost:8000/health
 ## CLI Usage
 
 ```bash
-# Install dependencies
 pip install -r requirements.txt
 
-# From a file
+# Single transcript
 python main.py run --file examples/sample_transcript_1.txt
 
-# From stdin
-cat transcript.txt | python main.py run --stdin
+# Skip normalization (already clean)
+python main.py run --file transcript.txt --raw
 
-# Output formats: json | markdown (default) | email-only
-python main.py run --file examples/sample_transcript_1.txt --format json
-python main.py run --file examples/sample_transcript_1.txt --format email-only
+# Push to Notion after extraction
+python main.py run --file transcript.txt --push-notion
 
-# Save to file
-python main.py run --file examples/sample_transcript_1.txt --format json --output results/meeting.json
-```
+# Batch: process entire directory
+python main.py batch --dir ./transcripts/
 
-**Via Docker:**
-```bash
-docker-compose run --rm cli run --file examples/sample_transcript_1.txt
+# Batch with weekly digest
+python main.py batch --dir ./transcripts/ --digest
+
+# Weekly digest from multiple extracted JSON files
+python main.py digest meeting1.json meeting2.json meeting3.json
+
+# Commitment tracker across meeting sessions
+python main.py track-commitments session1.json session2.json session3.json
 ```
 
 ---
 
-## API Usage
+## API Endpoints
 
-### Health check
-```bash
-curl http://localhost:8000/health
-# {"status":"ok","model":"claude-sonnet-4-6"}
-```
-
-### Extract from text
-```bash
-curl -X POST http://localhost:8000/extract \
-  -H "Content-Type: application/json" \
-  -d '{"transcript": "Alice: We agreed to ship by Friday. Bob will handle the release."}'
-```
-
-### Extract from file upload
-```bash
-curl -X POST http://localhost:8000/extract/file \
-  -F "file=@examples/sample_transcript_1.txt"
-```
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/health` | Liveness check |
+| `POST` | `/extract` | Extract from transcript text |
+| `POST` | `/extract/file` | Extract from uploaded `.txt` file |
+| `POST` | `/extract/batch` | Batch extract from multiple transcripts |
+| `POST` | `/digest` | Build weekly digest from meeting outputs |
+| `POST` | `/track-commitments` | Track missed commitments across sessions |
+| `POST` | `/push-to-notion` | Push a meeting output to Notion |
 
 ---
 
 ## Sample Input → Output
 
-**Input** (`examples/sample_transcript_1.txt`):
+**Input** (raw Zoom transcript):
 ```
-Alice: Good morning everyone. The Redis latency has been really problematic.
-Bob: I've been seeing 200ms+ response times. It might be connection pool exhaustion.
-Alice: Bob, can you own this and get it sorted by Wednesday?
-Bob: Sure, I'll dig in today.
-...
+[00:02:14] Alice: Good morning. Still blocked on Redis — 450ms latency in auth.
+[00:03:01] Bob: I'll own the fix by Wednesday.
+[00:03:20] Charlie: Deployment needs Priya's approval before we can move.
 ```
 
-**Output** (markdown format):
+**Output** (standup format):
 ```
-# Engineering Standup
-**Date:** 2026-05-17
-**Participants:** Alice Chen, Bob Patel, Charlie Nwosu
-
-## Executive Summary
-The team aligned on Redis fix ownership and unblocking the stalled deployment...
+## Meeting Type: standup (confidence: 0.94)
 
 ## Action Items
 | Task | Owner | Deadline | Priority |
 |------|-------|----------|----------|
-| Fix Redis latency on auth service | Bob Patel | Wednesday EOD | High |
-| Deliver rollback plan doc | Bob Patel | Today EOD | High |
-| Escalate INF-2284 to Priya | Charlie Nwosu | This morning | High |
+| Fix Redis latency on auth service | Bob | Wednesday EOD | High |
+| Get deployment approval from Priya | Charlie | Today | High |
 
 ## Risk Flags
-**[CRITICAL]** Redis auth service latency spiking to 450ms — indirectly blocking API team.
-**[MODERATE]** Deployment blocked on infrastructure board sign-off — Q2 release at risk.
+[CRITICAL] Redis auth service latency at 450ms — blocking API consumers.
 
-## Follow-up Email
----
-Team,
-
-Thanks for a productive standup. Here's a summary of what we aligned on...
----
+## Follow-up (standup format)
+🔴 Blockers
+- Redis latency spike (Bob owns fix by Wednesday)
+- Deployment approval pending (Priya)
+🔄 In Progress
+- Auth service performance investigation
+✅ Done
+- Sprint planning scheduled
 ```
-
-Full example JSON output: [`examples/sample_output.json`](examples/sample_output.json)
 
 ---
 
@@ -118,6 +115,8 @@ Full example JSON output: [`examples/sample_output.json`](examples/sample_output
   "meeting_title": "string | null",
   "date": "string | null",
   "participants": ["string"],
+  "meeting_type": "standup | retrospective | exec_review | sprint_planning | ...",
+  "meeting_type_confidence": 0.94,
   "decisions": ["string"],
   "action_items": [
     { "task": "string", "owner": "string | null", "deadline": "string | null", "priority": "high|medium|low" }
@@ -126,7 +125,7 @@ Full example JSON output: [`examples/sample_output.json`](examples/sample_output
   "risk_flags": [
     { "description": "string", "severity": "critical|moderate|low" }
   ],
-  "follow_up_email": "string",
+  "formatted_follow_up": "string",
   "summary": "string"
 }
 ```
@@ -138,6 +137,7 @@ Full example JSON output: [`examples/sample_output.json`](examples/sample_output
 ```bash
 pip install -r requirements.txt
 pytest
+# 63 tests, 0 failures
 ```
 
 ---
@@ -148,7 +148,9 @@ pytest
 |----------|---------|-------------|
 | `ANTHROPIC_API_KEY` | — | **Required.** Your Anthropic API key. |
 | `MODEL` | `claude-sonnet-4-6` | Claude model to use. |
-| `MAX_TOKENS` | `2048` | Max tokens in Claude's response. |
+| `MAX_TOKENS` | `2048` | Max tokens per extraction. |
+| `NOTION_API_KEY` | — | Required only for Notion integration. |
+| `NOTION_DATABASE_ID` | — | Required only for Notion integration. |
 | `LOG_LEVEL` | `INFO` | Logging verbosity. |
 
 ---
