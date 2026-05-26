@@ -37,3 +37,7 @@ spec-meeting-to-action-v2.md
 # IDE
 .idea/
 .vscode/
+
+
+# Claude    
+.claude/
